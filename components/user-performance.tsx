@@ -310,37 +310,70 @@ export default function UserPerformance({ selectedUser }: UserPerformanceProps) 
                 </CardHeader>
                 <CardContent>
                   <div className="h-80 w-full">
-                    <ChartContainer
-                      config={{
-                        tiempo: {
-                          label: "Tu tiempo",
-                          color: "hsl(var(--chart-1))",
-                        },
-                        promedio: {
-                          label: "Tiempo promedio",
-                          color: "hsl(var(--chart-2))",
-                        },
-                      }}
-                    >
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart 
-                          data={workoutData} 
-                          layout="vertical"
-                          margin={{ top: 10, right: 30, left: 20, bottom: 30 }}
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={workoutData} 
+                        layout="horizontal"
+                        margin={{ top: 10, right: 30, left: 20, bottom: 30 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={false} />
+                        <XAxis 
+                          dataKey="name" 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fontWeight: 'normal' }}
+                          height={50}
+                        />
+                        <YAxis 
+                          type="number"
+                          tickFormatter={(value) => `${value.toFixed(0)} min`}
+                          domain={[0, Math.max(userTimeMin, mean) * 1.2]}
+                          axisLine={false}
+                          width={60}
+                        />
+                        <text 
+                          x={30} 
+                          y={15} 
+                          textAnchor="start" 
+                          dominantBaseline="hanging"
+                          style={{ fontSize: '12px', fill: '#6B7280' }}
                         >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis
-                            type="number"
-                            tickFormatter={(value) => `${value.toFixed(0)} min`}
-                            domain={[0, "dataMax + 5"]}
-                          />
-                          <YAxis dataKey="name" type="category" />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Bar dataKey="tiempo" fill="var(--color-tiempo)" name="Tu tiempo" />
-                          <Bar dataKey="promedio" fill="var(--color-promedio)" name="Tiempo promedio" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
+                          Tiempo (min)
+                        </text>
+                        <Bar 
+                          dataKey="tiempo" 
+                          name="Tu tiempo" 
+                          fill="#3B82F6" // Azul brillante
+                          radius={[4, 4, 4, 4]}
+                          barSize={50}
+                        />
+                        <Bar 
+                          dataKey="promedio" 
+                          name="Tiempo promedio" 
+                          fill="#10B981" // Verde
+                          radius={[4, 4, 4, 4]}
+                          barSize={50}
+                        />
+                        <Tooltip
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              return (
+                                <div className="bg-background border rounded p-2 shadow-md">
+                                  {payload.map((entry, index) => (
+                                    <div key={`tooltip-${index}`} className="flex flex-col">
+                                      <span className="font-medium" style={{ color: entry.color }}>
+                                        {entry.name}: {typeof entry.value === 'number' ? entry.value.toFixed(1) : entry.value} min
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>
@@ -350,96 +383,113 @@ export default function UserPerformance({ selectedUser }: UserPerformanceProps) 
                   <CardTitle className="text-lg">Distribución normal</CardTitle>
                   <CardDescription>Distribución de tiempos de todos los participantes</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ChartContainer
-                    config={{
-                      distribution: {
-                        label: "Distribución",
-                        color: "#BFDBFE", // Light blue color
-                      },
-                    }}
-                    className="h-[300px]"
-                  >
-                    <AreaChart 
-                      data={bellCurveData} 
-                      margin={{ top: 30, right: 20, left: 20, bottom: 30 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                      <XAxis
-                        dataKey="x"
-                        type="number"
-                        domain={[minTime, maxTime]} // Use calculated domain
-                        // Generate ticks dynamically based on the range
-                        ticks={(() => {
-                          const range = maxTime - minTime;
-                          const tickCount = Math.min(10, Math.floor(range / 3));
-                          const tickStep = range / tickCount;
-                          return Array.from({ length: tickCount + 1 }, (_, i) => 
-                            Math.round((minTime + i * tickStep) * 10) / 10
-                          );
-                        })()}
-                        tickFormatter={(value) => `${value}`}
-                        label={{ 
-                          value: "Tiempo (min)", 
-                          position: "insideBottom", 
-                          offset: 0
-                        }}
-                      />
-                      <YAxis hide />
-                      <Area
-                        type="monotone"
-                        dataKey="y"
-                        stroke="#93C5FD" // Blue stroke
-                        fill="#BFDBFE" // Light blue fill
-                        fillOpacity={0.6}
-                        isAnimationActive={false} // Disable animation to ensure immediate rendering
-                      />
-                      {userData.termino === "Sí" && (
-                        <ReferenceLine
-                          x={userTimeMin}
-                          stroke="#FF0000"
+                <CardContent className="relative">
+                  <div className="h-80 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart 
+                        data={bellCurveData} 
+                        margin={{ top: 40, right: 20, left: 20, bottom: 30 }}
+                      >
+                        <defs>
+                          <linearGradient id="colorDistribution" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#BFDBFE" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#BFDBFE" stopOpacity={0.1}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+                        <XAxis
+                          dataKey="x"
+                          type="number"
+                          domain={[minTime, maxTime]}
+                          ticks={(() => {
+                            const range = maxTime - minTime;
+                            const tickCount = Math.min(12, Math.floor(range / 3));
+                            const tickStep = range / tickCount;
+                            return Array.from({ length: tickCount + 1 }, (_, i) => 
+                              Math.round((minTime + i * tickStep) * 10) / 10
+                            );
+                          })()}
+                          tickFormatter={(value) => `${value}`}
+                          axisLine={{ stroke: '#E5E7EB' }}
+                          tickLine={{ stroke: '#E5E7EB' }}
+                          tick={{ fontSize: 10 }}
+                          label={{ 
+                            value: "Tiempo (min)", 
+                            position: "insideBottom", 
+                            offset: 0
+                          }}
+                        />
+                        <YAxis hide />
+                        <Area
+                          type="monotone"
+                          dataKey="y"
+                          stroke="#93C5FD" // Contorno azul claro
                           strokeWidth={2}
+                          fill="url(#colorDistribution)" // Gradiente azul
+                          isAnimationActive={false}
+                        />
+                        {userData.termino === "Sí" && (
+                          <ReferenceLine
+                            x={userTimeMin}
+                            stroke="#FF0000"
+                            strokeWidth={2}
+                            isFront={true}
+                            label={{
+                              value: "Tu tiempo",
+                              position: "top",
+                              fill: "#FF0000",
+                              fontSize: 12,
+                              fontWeight: "600"
+                            }}
+                            ifOverflow="extendDomain"
+                          />
+                        )}
+                        <ReferenceLine
+                          x={mean}
+                          stroke="#6B7280"
+                          strokeDasharray="3 3"
+                          isFront={true}
                           label={{
-                            value: "Tu tiempo",
+                            value: "Promedio",
                             position: "top",
-                            fill: "#FF0000",
+                            fill: "#6B7280",
                             fontSize: 12,
                           }}
-                          ifOverflow="extendDomain" // Ensure the line is visible even if it's at domain edges
+                          ifOverflow="extendDomain"
                         />
-                      )}
-                      <ReferenceLine
-                        x={mean}
-                        stroke="#6B7280" // Gray
-                        strokeDasharray="3 3"
-                        ifOverflow="extendDomain"
-                        label={{
-                          value: "Promedio",
-                          position: "top",
-                          fill: "#6B7280",
-                          fontSize: 12,
-                        }}
-                      />
-                      <Tooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            return (
-                              <div className="bg-background border rounded p-2 shadow-md">
-                                <p className="font-medium">
-                                  Tiempo: {data.x.toFixed(0)} min
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {data.x < mean ? "Mejor que el promedio" : "Peor que el promedio"}
-                                </p>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                    </AreaChart>
-                  </ChartContainer>
+                        <Tooltip
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="bg-background border rounded p-2 shadow-md">
+                                  <p className="font-medium">
+                                    Tiempo: {data.x.toFixed(1)} min
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {data.x < mean ? "Mejor que el promedio" : "Peor que el promedio"}
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Legend markers at the top of the chart */}
+                  <div className="absolute top-2 right-4 flex gap-4 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 bg-red-500"></div>
+                      <span>Tu tiempo</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 border border-gray-500 bg-white"></div>
+                      <span>Promedio</span>
+                    </div>
+                  </div>
 
                   <Alert className="mt-4">
                     <AlertTitle className="flex items-center gap-2">
