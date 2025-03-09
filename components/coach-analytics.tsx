@@ -88,7 +88,7 @@ export default function CoachAnalytics() {
               <CardTitle>Tasa de Finalización por Clase</CardTitle>
               <CardDescription>Porcentaje de participantes que completaron por horario</CardDescription>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[450px] pt-4">
               <CompletionRateByClass />
             </CardContent>
           </Card>
@@ -100,7 +100,7 @@ export default function CoachAnalytics() {
               <CardTitle>Distribución de Rendimiento</CardTitle>
               <CardDescription>Distribución de tiempos de finalización</CardDescription>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[450px] pt-4">
               <PerformanceDistribution />
             </CardContent>
           </Card>
@@ -112,7 +112,7 @@ export default function CoachAnalytics() {
               <CardTitle>Rendimiento por Género</CardTitle>
               <CardDescription>Comparación de tiempos promedio por género</CardDescription>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[450px] pt-4">
               <GenderPerformance />
             </CardContent>
           </Card>
@@ -124,7 +124,7 @@ export default function CoachAnalytics() {
               <CardTitle>Tendencia por Clase</CardTitle>
               <CardDescription>Tiempo promedio por horario de clase</CardDescription>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[450px] pt-4">
               <ClassPerformanceTrend />
             </CardContent>
           </Card>
