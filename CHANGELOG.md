@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Athletes section with ranking table (responsive design for mobile/desktop)
+
 ### Fixed
 - Chart overflow issues in CompletionRateByClass with responsive container
 - Improved "Tendencia por Clase" chart with responsive container and better margins
