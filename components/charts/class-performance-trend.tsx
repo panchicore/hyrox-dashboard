@@ -1,6 +1,6 @@
 "use client"
 
-import { Line, LineChart, CartesianGrid, XAxis, YAxis, Legend } from "recharts"
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer } from "recharts"
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
 import { hyroxData } from "@/lib/data"
 import { Card, CardContent } from "@/components/ui/card"
@@ -25,14 +25,15 @@ export default function ClassPerformanceTrend() {
   const data = sortedClasses.map((classTime) => {
     const classUsers = completedUsers.filter((user) => user.clase === classTime)
 
-    // Calculate average time
-    const avgTime = classUsers.reduce((sum, user) => sum + user.tiempo_segs, 0) / classUsers.length / 60
+    // Calculate average time, handling potential null values
+    const validTimes = classUsers.map(user => user.tiempo_segs).filter(time => time !== null) as number[]
+    const avgTime = validTimes.reduce((sum, time) => sum + time, 0) / validTimes.length / 60
 
-    // Find best time (minimum)
-    const bestTime = Math.min(...classUsers.map((user) => user.tiempo_segs)) / 60
+    // Find best time (minimum), handling potential null values
+    const bestTime = Math.min(...validTimes) / 60
 
-    // Find worst time (maximum)
-    const worstTime = Math.max(...classUsers.map((user) => user.tiempo_segs)) / 60
+    // Find worst time (maximum), handling potential null values
+    const worstTime = Math.max(...validTimes) / 60
 
     // Count participants in this class
     const participantCount = classUsers.length
@@ -63,60 +64,67 @@ export default function ClassPerformanceTrend() {
             color: "hsl(var(--destructive))",
           },
         }}
-        className="h-[350px]"
+        className="h-full w-full"
       >
-        <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="clase" label={{ value: "Horario de clase", position: "insideBottom", offset: -5 }} />
-          <YAxis
-            label={{ value: "Minutos", angle: -90, position: "insideLeft" }}
-            domain={["dataMin - 1", "dataMax + 1"]}
-          />
-          <ChartTooltip
-            content={({ active, payload, label }) => {
-              if (active && payload && payload.length) {
-                return (
-                  <div className="bg-background border rounded p-2 shadow-md">
-                    <p className="font-medium">Clase: {label}</p>
-                    <p className="text-sm text-green-600">Mejor tiempo: {payload[0].value} min</p>
-                    <p className="text-sm text-blue-600">Tiempo promedio: {payload[1].value} min</p>
-                    <p className="text-sm text-red-600">Peor tiempo: {payload[2].value} min</p>
-                    <p className="text-sm text-muted-foreground">Participantes: {payload[1].payload.participantes}</p>
-                  </div>
-                )
-              }
-              return null
-            }}
-          />
-          <Legend />
-          <Line
-            type="monotone"
-            dataKey="mejor"
-            stroke="#22c55e"
-            strokeWidth={2}
-            dot={{ r: 4, fill: "#22c55e" }}
-            activeDot={{ r: 6 }}
-            name="Mejor tiempo"
-          />
-          <Line
-            type="monotone"
-            dataKey="promedio"
-            stroke="var(--color-promedio)"
-            strokeWidth={2}
-            dot={{ r: 4 }}
-            activeDot={{ r: 6 }}
-            name="Tiempo promedio"
-          />
-          <Line
-            type="monotone"
-            dataKey="peor"
-            stroke="#ef4444"
-            strokeWidth={2}
-            dot={{ r: 4, fill: "#ef4444" }}
-            activeDot={{ r: 6 }}
-            name="Peor tiempo"
-          />
-        </LineChart>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 20, right: 20, left: 15, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey="clase" 
+              label={{ value: "Horario de clase", position: "insideBottom", offset: -5 }}
+              tick={{ fontSize: 12 }} 
+            />
+            <YAxis
+              label={{ value: "Minutos", angle: -90, position: "insideLeft" }}
+              domain={["dataMin - 1", "dataMax + 1"]}
+              tick={{ fontSize: 12 }}
+            />
+            <ChartTooltip
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-background border rounded p-2 shadow-md">
+                      <p className="font-medium">Clase: {label}</p>
+                      <p className="text-sm text-green-600">Mejor tiempo: {payload[0].value} min</p>
+                      <p className="text-sm text-blue-600">Tiempo promedio: {payload[1].value} min</p>
+                      <p className="text-sm text-red-600">Peor tiempo: {payload[2].value} min</p>
+                      <p className="text-sm text-muted-foreground">Participantes: {payload[1].payload.participantes}</p>
+                    </div>
+                  )
+                }
+                return null
+              }}
+            />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="mejor"
+              stroke="#22c55e"
+              strokeWidth={2}
+              dot={{ r: 4, fill: "#22c55e" }}
+              activeDot={{ r: 6 }}
+              name="Mejor tiempo"
+            />
+            <Line
+              type="monotone"
+              dataKey="promedio"
+              stroke="var(--color-promedio)"
+              strokeWidth={2}
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
+              name="Tiempo promedio"
+            />
+            <Line
+              type="monotone"
+              dataKey="peor"
+              stroke="#ef4444"
+              strokeWidth={2}
+              dot={{ r: 4, fill: "#ef4444" }}
+              activeDot={{ r: 6 }}
+              name="Peor tiempo"
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </ChartContainer>
 
       <Card>

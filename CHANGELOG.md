@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Chart overflow issues in CompletionRateByClass with responsive container
+- Improved "Tendencia por Clase" chart with responsive container and better margins
+- Fixed potential null value errors in class performance calculations
 - Increased chart container heights and added padding for better visualization
 
 ## [1.0.0] - 2024-08-18
