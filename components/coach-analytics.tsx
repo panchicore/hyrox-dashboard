@@ -1,5 +1,7 @@
 "use client"
 
+import * as React from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { hyroxData } from "@/lib/data"
@@ -7,8 +9,30 @@ import CompletionRateByClass from "@/components/charts/completion-rate-by-class"
 import PerformanceDistribution from "@/components/charts/performance-distribution"
 import GenderPerformance from "@/components/charts/gender-performance"
 import ClassPerformanceTrend from "@/components/charts/class-performance-trend"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ChevronDown, ChevronUp, Clock } from "lucide-react"
 
 export default function CoachAnalytics() {
+  // Screen size state
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Effect to detect screen size
+  useEffect(() => {
+    // Check initial screen size
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768) // 768px is md breakpoint in Tailwind
+    }
+    
+    // Set initial value
+    checkScreenSize()
+    
+    // Add event listener for resize
+    window.addEventListener('resize', checkScreenSize)
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
+
   // Calculate completion rate
   const totalParticipants = hyroxData.length
   const completedParticipants = hyroxData.filter((user) => user.termino === "Sí").length
@@ -21,6 +45,45 @@ export default function CoachAnalytics() {
   // Best performers
   const bestMale = hyroxData.find((user) => user.ranking_por_sexo === "M1")
   const bestFemale = hyroxData.find((user) => user.ranking_por_sexo === "F1")
+
+  // Athletes data sorted by ranking
+  const sortedAthletes = [...hyroxData].sort((a, b) => {
+    // Handle potentially null values
+    const rankA = a.ranking_general || 9999
+    const rankB = b.ranking_general || 9999
+    return rankA - rankB
+  })
+
+  // State for expanded athlete rows (for mobile view)
+  const [expandedAthletes, setExpandedAthletes] = useState<number[]>([])
+
+  // Toggle expanded state for an athlete
+  const toggleExpandAthlete = (rankingGeneral: number | null) => {
+    if (rankingGeneral === null) return
+    setExpandedAthletes((prev) =>
+      prev.includes(rankingGeneral)
+        ? prev.filter((id) => id !== rankingGeneral)
+        : [...prev, rankingGeneral]
+    )
+  }
+
+  // Function to check if an athlete is expanded
+  const isAthleteExpanded = (rankingGeneral: number | null) => {
+    if (rankingGeneral === null) return false
+    return expandedAthletes.includes(rankingGeneral)
+  }
+
+  // Get class time icon
+  const getClassTimeIcon = (classTime: string) => {
+    const hour = parseInt(classTime.replace('AM', '').replace('PM', ''))
+    const isAM = classTime.includes('AM')
+    
+    // Morning classes (5AM to 9AM)
+    if (isAM) return "🌅"
+    
+    // Afternoon/Evening classes (4PM to 9PM)
+    return "🌇"
+  }
 
   return (
     <div className="space-y-4">
@@ -73,6 +136,105 @@ export default function CoachAnalytics() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Athletes Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Athletes</CardTitle>
+          <CardDescription>Ranking y performance de los participantes</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Conditionally render either desktop or mobile table based on screen size */}
+          {!isMobile ? (
+            // Desktop View - Full Table
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Tiempo</TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead>Clase</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedAthletes.map((athlete) => (
+                  <TableRow key={`${athlete.nombre}-${athlete.ranking_general}-desktop`}>
+                    <TableCell className="font-medium">{athlete.ranking_general}</TableCell>
+                    <TableCell>{athlete.nombre}</TableCell>
+                    <TableCell>{athlete.tiempo}</TableCell>
+                    <TableCell>{athlete.ranking_por_sexo}</TableCell>
+                    <TableCell>
+                      <span title={athlete.clase}>
+                        {getClassTimeIcon(athlete.clase)} {athlete.clase}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            // Mobile View - Simplified Table with Expand Option
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10">#</TableHead>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Tiempo</TableHead>
+                  <TableHead className="w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedAthletes.map((athlete) => (
+                  <React.Fragment key={`${athlete.nombre}-${athlete.ranking_general}-mobile`}>
+                    <TableRow 
+                      className="cursor-pointer"
+                      onClick={() => toggleExpandAthlete(athlete.ranking_general)}
+                    >
+                      <TableCell className="font-medium">{athlete.ranking_general}</TableCell>
+                      <TableCell>{athlete.nombre}</TableCell>
+                      <TableCell>{athlete.tiempo}</TableCell>
+                      <TableCell>
+                        {isAthleteExpanded(athlete.ranking_general) ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    {isAthleteExpanded(athlete.ranking_general) && (
+                      <TableRow className="bg-muted/30">
+                        <TableCell colSpan={4} className="p-2">
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div className="flex items-center gap-1">
+                              <span className="text-muted-foreground">Categoría:</span>
+                              <span className="font-semibold">{athlete.ranking_por_sexo}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-muted-foreground">Clase:</span>
+                              <span className="font-semibold">
+                                {getClassTimeIcon(athlete.clase)} {athlete.clase}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-muted-foreground">Completó:</span>
+                              <span className="font-semibold">{athlete.termino}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-muted-foreground">Δ vs #1:</span>
+                              <span className="font-semibold">{athlete.delta_vs_1_min?.toFixed(1) || '-'} min</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="completion" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
