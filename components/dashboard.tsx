@@ -7,12 +7,16 @@ import UserPerformance from "@/components/user-performance"
 import CoachAnalytics from "@/components/coach-analytics"
 import UserSelector from "@/components/user-selector"
 import DateSelector from "@/components/date-selector"
+import { hyroxDataByDate } from "@/lib/data"
 
 export default function Dashboard() {
+  // Get the first date available as default
+  const defaultDate = Object.keys(hyroxDataByDate)[0]
+  
   const [selectedUser, setSelectedUser] = useState("")
   const [selectedClass, setSelectedClass] = useState("")
   const [activeTab, setActiveTab] = useState("coach")
-  const [selectedDate, setSelectedDate] = useState("Jueves, 6 de marzo de 2025")
+  const [selectedDate, setSelectedDate] = useState(defaultDate)
 
   // Switch to participant tab when a user is selected
   useEffect(() => {
@@ -20,6 +24,9 @@ export default function Dashboard() {
       setActiveTab("user")
     }
   }, [selectedUser])
+
+  // Get current participants based on selected date
+  const currentDateData = hyroxDataByDate[selectedDate] || { participantes: [] }
 
   return (
     <div className="container px-4 py-6 mx-auto space-y-6 md:py-10">
@@ -40,6 +47,7 @@ export default function Dashboard() {
             setSelectedUser={setSelectedUser}
             selectedClass={selectedClass}
             setSelectedClass={setSelectedClass}
+            participants={currentDateData.participantes}
           />
         </CardContent>
       </Card>
@@ -50,10 +58,13 @@ export default function Dashboard() {
           <TabsTrigger value="coach">Coach</TabsTrigger>
         </TabsList>
         <TabsContent value="user" className="space-y-4">
-          <UserPerformance selectedUser={selectedUser} />
+          <UserPerformance 
+            selectedUser={selectedUser} 
+            participants={currentDateData.participantes}
+          />
         </TabsContent>
         <TabsContent value="coach" className="space-y-4">
-          <CoachAnalytics />
+          <CoachAnalytics participants={currentDateData.participantes} />
         </TabsContent>
       </Tabs>
     </div>

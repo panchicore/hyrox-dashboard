@@ -2,11 +2,26 @@
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { hyroxData } from "@/lib/data"
 
-export default function PerformanceDistribution() {
+interface PerformanceDistributionProps {
+  participants: Array<{
+    clase: string
+    nombre: string
+    tiempo: string
+    tiempo_segs: number | null
+    termino: string
+    ultimo_workout: string
+    genero: string
+    ranking_general: number | null
+    ranking_por_sexo: string | null
+    delta_vs_1_min: number | null
+    delta_vs_anterior_min: number | null
+  }>
+}
+
+export default function PerformanceDistribution({ participants }: PerformanceDistributionProps) {
   // Only include users who completed
-  const completedUsers = hyroxData.filter((user) => user.termino === "Sí")
+  const completedUsers = participants.filter((user) => user.termino === "Sí")
 
   // Create time ranges (in minutes)
   const timeRanges = [
@@ -20,7 +35,7 @@ export default function PerformanceDistribution() {
   // Count users in each time range
   const data = timeRanges.map((range) => {
     const count = completedUsers.filter((user) => {
-      const timeInMinutes = user.tiempo_segs / 60
+      const timeInMinutes = user.tiempo_segs! / 60
       return timeInMinutes >= range.min && (range.max === 45 || timeInMinutes < range.max)
     }).length
 

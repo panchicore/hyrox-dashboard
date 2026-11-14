@@ -2,6 +2,7 @@
 
 import { Calendar } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { hyroxDataByDate } from "@/lib/data"
 
 interface DateSelectorProps {
   selectedDate: string
@@ -9,8 +10,11 @@ interface DateSelectorProps {
 }
 
 export default function DateSelector({ selectedDate, setSelectedDate }: DateSelectorProps) {
-  // Solo tenemos una fecha disponible
-  const availableDates = ["Jueves, 6 de marzo de 2025"]
+  // Get available dates from the hyroxDataByDate object
+  const availableDates = Object.values(hyroxDataByDate).map(dateData => ({
+    value: dateData.fecha,
+    label: dateData.nombre_display
+  }))
 
   return (
     <div className="w-full">
@@ -24,8 +28,8 @@ export default function DateSelector({ selectedDate, setSelectedDate }: DateSele
         </SelectTrigger>
         <SelectContent>
           {availableDates.map((date) => (
-            <SelectItem key={date} value={date}>
-              {date}
+            <SelectItem key={date.value} value={date.value}>
+              {date.label}
             </SelectItem>
           ))}
         </SelectContent>

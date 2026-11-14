@@ -2,15 +2,30 @@
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { hyroxData } from "@/lib/data"
 
-export default function CompletionRateByClass() {
+interface CompletionRateByClassProps {
+  participants: Array<{
+    clase: string
+    nombre: string
+    tiempo: string
+    tiempo_segs: number | null
+    termino: string
+    ultimo_workout: string
+    genero: string
+    ranking_general: number | null
+    ranking_por_sexo: string | null
+    delta_vs_1_min: number | null
+    delta_vs_anterior_min: number | null
+  }>
+}
+
+export default function CompletionRateByClass({ participants }: CompletionRateByClassProps) {
   // Get all unique class times
-  const classes = [...new Set(hyroxData.map((user) => user.clase))].sort()
+  const classes = [...new Set(participants.map((user) => user.clase))].sort()
 
   // Calculate completion rate for each class
   const data = classes.map((classTime) => {
-    const classParticipants = hyroxData.filter((user) => user.clase === classTime)
+    const classParticipants = participants.filter((user) => user.clase === classTime)
     const completedParticipants = classParticipants.filter((user) => user.termino === "Sí")
     const completionRate = (completedParticipants.length / classParticipants.length) * 100
 

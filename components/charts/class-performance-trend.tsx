@@ -2,13 +2,28 @@
 
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Legend, ResponsiveContainer } from "recharts"
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
-import { hyroxData } from "@/lib/data"
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp } from "lucide-react"
 
-export default function ClassPerformanceTrend() {
+interface ClassPerformanceTrendProps {
+  participants: Array<{
+    clase: string
+    nombre: string
+    tiempo: string
+    tiempo_segs: number | null
+    termino: string
+    ultimo_workout: string
+    genero: string
+    ranking_general: number | null
+    ranking_por_sexo: string | null
+    delta_vs_1_min: number | null
+    delta_vs_anterior_min: number | null
+  }>
+}
+
+export default function ClassPerformanceTrend({ participants }: ClassPerformanceTrendProps) {
   // Only include users who completed
-  const completedUsers = hyroxData.filter((user) => user.termino === "Sí")
+  const completedUsers = participants.filter((user) => user.termino === "Sí")
 
   // Get all unique class times
   const classes = [...new Set(completedUsers.map((user) => user.clase))]
